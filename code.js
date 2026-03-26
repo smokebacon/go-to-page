@@ -44,7 +44,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     ];
 
     if (recentPages.length > 0 && otherPages.length > 0) {
-      suggestions.push({ separator: true });
+      suggestions.push({ name: '──────────────────────', data: '__divider__' });
     }
 
     otherPages.forEach(p => {
@@ -73,7 +73,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     ];
 
     if (recentMatches.length > 0 && otherMatches.length > 0) {
-      suggestions.push({ separator: true });
+      suggestions.push({ name: '──────────────────────', data: '__divider__' });
     }
 
     otherMatches.forEach(p => {
@@ -91,7 +91,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
 figma.on('run', async ({ parameters }) => {
   const pageId = parameters && parameters.page;
 
-  if (pageId) {
+  if (pageId && pageId !== '__divider__') {
     const page = figma.root.children.find(p => p.id === pageId);
     if (page) {
       await saveRecentId(page.id);
