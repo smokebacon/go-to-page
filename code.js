@@ -6,6 +6,9 @@ const STORAGE_KEY = 'recentPageIds';
 const MAX_RECENT  = 3;
 const DIVIDER     = '__divider__';
 
+// ── Clock icon SVG for last-visited suggestions ───────────────────────────────
+const CLOCK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8.2l2.5 1.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 // ── clientStorage helpers ─────────────────────────────────────────────────────
 async function getRecentIds() {
   const stored = await figma.clientStorage.getAsync(STORAGE_KEY);
@@ -48,6 +51,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     const suggestions = recentPages.map(p => ({
       name: p.name + '  ·  last visited',
       data: p.id,
+      icon: CLOCK_ICON,
     }));
 
     if (recentPages.length > 0 && otherPages.length > 0) {
@@ -73,6 +77,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     const suggestions = recentMatches.map(p => ({
       name: p.name + '  ·  last visited',
       data: p.id,
+      icon: CLOCK_ICON,
     }));
 
     if (recentMatches.length > 0 && otherMatches.length > 0) {
