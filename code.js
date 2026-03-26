@@ -48,7 +48,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
       .filter(Boolean);
 
     const suggestions = recentPages.map(p => ({
-      name: p.name + '  ·  last visited',
+      name: p.name + '  —  Recent',
       data: p.id,
       icon: CLOCK_ICON,
     }));
@@ -77,7 +77,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     const recentMatches = matches.filter(p => recentIds.includes(p.id));
 
     const suggestions = recentMatches.map(p => ({
-      name: p.name + '  ·  last visited',
+      name: p.name + '  —  Recent',
       data: p.id,
       icon: CLOCK_ICON,
     }));
