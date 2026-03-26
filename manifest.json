@@ -1,0 +1,17 @@
+{
+  "name": "Page Jumper",
+  "id": "page-jumper",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "parameterOnly": true,
+  "parameters": [
+    {
+      "name": "Page",
+      "key": "page",
+      "description": "Type to search pages…",
+      "allowFreeform": false
+    }
+  ]
+}
