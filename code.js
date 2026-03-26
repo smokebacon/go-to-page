@@ -7,17 +7,15 @@ const MAX_RECENT    = 3;            // how many to show
 const MAX_STORED    = MAX_RECENT + 1; // store one extra to cover the current page being filtered out
 const DIVIDER     = '__divider__';
 const PAGE_DIVIDER_NAME_PATTERN = /^([*\-–— ])\1*$/u;
-// Used for an "invisible" divider row: must be non-empty so the UI keeps a row height.
-const BLANK_DIVIDER_LABEL = '\u00A0'; // NBSP (renders as blank in most fonts)
+const PAGE_DIVIDER_LABEL = '═\u00A0═\u00A0═\u00A0═\u00A0═\u00A0═';
 
 // ── Clock icon SVG for last-visited suggestions ───────────────────────────────
 const CLOCK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><style>.icon-stroke{stroke:#1f1f1f}@media (prefers-color-scheme: dark){.icon-stroke{stroke:#ffffff}}</style><circle class="icon-stroke" cx="8" cy="8" r="6.5" stroke-width="1.3"/><path class="icon-stroke" d="M8 4.5V8.2l2.5 1.8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const SEPARATOR_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><style>.icon-fill{fill:#1f1f1f}@media (prefers-color-scheme: dark){.icon-fill{fill:#ffffff}}</style><rect class="icon-fill" x="4.5" y="7.35" width="7" height="1.3" rx="0.65"/></svg>';
 
 // ── clientStorage helpers ─────────────────────────────────────────────────────
 async function getRecentIds() {
   const stored = await figma.clientStorage.getAsync(STORAGE_KEY);
-  return Array.isArray(stored) ? stored : [];
+  return Array.isArray(stored) ? stored.filter(id => typeof id === 'string') : [];
 }
 
 async function saveRecentId(pageId) {
@@ -37,12 +35,19 @@ function isSeparatorPage(page) {
   return PAGE_DIVIDER_NAME_PATTERN.test(page.name);
 }
 
+function formatPageName(name) {
+  const pageName = typeof name === 'string' ? name : '';
+  return pageName
+    .replace(/^ +| +$/g, spaces => '\u00A0'.repeat(spaces.length))
+    .replace(/ {2,}/g, spaces => '\u00A0'.repeat(spaces.length));
+}
+
 function buildPageSuggestion(page, icon) {
   const separator = isSeparatorPage(page);
   return {
-    name: separator ? BLANK_DIVIDER_LABEL : page.name,
+    name: separator ? PAGE_DIVIDER_LABEL : formatPageName(page.name),
     data: separator ? DIVIDER : page.id,
-    icon: icon || (separator ? SEPARATOR_ICON : undefined),
+    icon,
   };
 }
 
@@ -50,68 +55,67 @@ function buildPageSuggestion(page, icon) {
 figma.parameters.on('input', async ({ key, query, result }) => {
   if (key !== 'page') return;
 
-  const q        = query.trim().toLowerCase();
-  const allPages = figma.root.children;
+  try {
+    const q        = query.trim().toLowerCase();
+    const allPages = figma.root.children;
 
-  // Fetch recent IDs — exclude stale, separator, and current page, then cap at MAX_RECENT
-  const recentIds = (await getRecentIds())
-    .filter(id => allPages.some(p => p.id === id && !isSeparatorPage(p)) && id !== figma.currentPage.id)
-    .slice(0, MAX_RECENT);
+    // Fetch recent IDs — exclude stale, separator, and current page, then cap at MAX_RECENT
+    const recentIds = (await getRecentIds())
+      .filter(id => allPages.some(p => p.id === id && !isSeparatorPage(p)) && id !== figma.currentPage.id)
+      .slice(0, MAX_RECENT);
 
-  if (q === '') {
-    // ── No query: last visited first, then ALL pages in original order ──────────
-    const recentPages = recentIds
-      .map(id => allPages.find(p => p.id === id))
-      .filter(Boolean);
+    if (q === '') {
+      // ── No query: last visited first, then ALL pages in original order ──────────
+      const recentPages = recentIds
+        .map(id => allPages.find(p => p.id === id))
+        .filter(Boolean);
 
-    const suggestions = recentPages.map(p => ({
-      name: p.name,
-      data: p.id,
-      icon: CLOCK_ICON,
-    }));
+      const suggestions = recentPages.map(p => ({
+        name: formatPageName(p.name),
+        data: p.id,
+        icon: CLOCK_ICON,
+      }));
 
-    if (recentPages.length > 0) {
-      suggestions.push({ name: BLANK_DIVIDER_LABEL, data: DIVIDER });
+      if (recentPages.length > 0) {
+        suggestions.push({ name: PAGE_DIVIDER_LABEL, data: DIVIDER });
+      }
+
+      // Full list — all pages in document order, including recent pages in their original place
+      allPages.forEach(p => {
+        suggestions.push(buildPageSuggestion(p));
+      });
+
+      result.setSuggestions(suggestions);
+      return;
     }
 
-    // Full list — all pages in document order, excluding recent pages to avoid duplicates
-    const recentSet = new Set(recentIds);
-    allPages.forEach(p => {
-      if (recentSet.has(p.id)) return;
-      suggestions.push(buildPageSuggestion(p));
-    });
-
-    result.setSuggestions(suggestions);
-
-  } else {
     // ── Query: last-visited matches first, then ALL matches in original order ───
-    const matches = allPages.filter(p => p.name.toLowerCase().includes(q));
+    const matches = allPages.filter(p => !isSeparatorPage(p) && p.name.toLowerCase().includes(q));
 
     if (matches.length === 0) {
       result.setSuggestions([{ name: 'No pages match "' + query + '"' }]);
       return;
     }
 
-    const recentMatches = matches.filter(p => recentIds.includes(p.id));
+    const recentMatches = matches.filter(p => recentIds.includes(p.id)).slice(0, 1);
 
     const suggestions = recentMatches.map(p => ({
-      name: p.name,
+      name: formatPageName(p.name),
       data: p.id,
       icon: CLOCK_ICON,
     }));
 
-    if (recentMatches.length > 0) {
-      suggestions.push({ name: BLANK_DIVIDER_LABEL, data: DIVIDER });
-    }
-
-    // Full filtered list — all matches, excluding recentMatches to avoid duplicates
-    const recentSet = new Set(recentIds);
+    // Full filtered list — all matches in document order, excluding the pinned recent match
+    const pinnedRecentIds = new Set(recentMatches.map(p => p.id));
     matches.forEach(p => {
-      if (recentSet.has(p.id)) return;
+      if (pinnedRecentIds.has(p.id)) return;
       suggestions.push(buildPageSuggestion(p));
     });
 
     result.setSuggestions(suggestions);
+  } catch (error) {
+    console.error('Failed to build page suggestions', error);
+    result.setSuggestions([{ name: 'Unable to load page suggestions' }]);
   }
 });
 
