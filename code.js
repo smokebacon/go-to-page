@@ -11,8 +11,8 @@ const PAGE_DIVIDER_NAME_PATTERN = /^([*\-–— ])\1*$/u;
 const BLANK_DIVIDER_LABEL = '\u00A0'; // NBSP (renders as blank in most fonts)
 
 // ── Clock icon SVG for last-visited suggestions ───────────────────────────────
-const CLOCK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8.2l2.5 1.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const SEPARATOR_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 8H11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+const CLOCK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><style>.icon-stroke{stroke:#1f1f1f}@media (prefers-color-scheme: dark){.icon-stroke{stroke:#ffffff}}</style><circle class="icon-stroke" cx="8" cy="8" r="6.5" stroke-width="1.3"/><path class="icon-stroke" d="M8 4.5V8.2l2.5 1.8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const SEPARATOR_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><style>.icon-fill{fill:#1f1f1f}@media (prefers-color-scheme: dark){.icon-fill{fill:#ffffff}}</style><rect class="icon-fill" x="4.5" y="7.35" width="7" height="1.3" rx="0.65"/></svg>';
 
 // ── clientStorage helpers ─────────────────────────────────────────────────────
 async function getRecentIds() {
