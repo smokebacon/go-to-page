@@ -33,11 +33,11 @@ figma.parameters.on('input', async ({ key, query, result }) => {
   if (key !== 'page') return;
 
   const q        = query.trim().toLowerCase();
-  const allPages = figma.root.children.filter(p => !isSeparatorPage(p));
+  const allPages = figma.root.children;
 
-  // Fetch recent IDs, drop stale and separator pages, exclude current page
+  // Fetch recent IDs — exclude stale, separator, and current page
   const recentIds = (await getRecentIds()).filter(id =>
-    allPages.some(p => p.id === id) && id !== figma.currentPage.id
+    allPages.some(p => p.id === id && !isSeparatorPage(p)) && id !== figma.currentPage.id
   );
 
   if (q === '') {
@@ -58,7 +58,10 @@ figma.parameters.on('input', async ({ key, query, result }) => {
       suggestions.push({ name: '━━━━━━━━━━━━━━━━━━━━━━━━', data: DIVIDER });
     }
 
-    otherPages.forEach(p => suggestions.push({ name: p.name, data: p.id }));
+    otherPages.forEach(p => suggestions.push({
+      name: p.name,
+      data: isSeparatorPage(p) ? DIVIDER : p.id,
+    }));
 
     result.setSuggestions(suggestions);
 
@@ -84,7 +87,10 @@ figma.parameters.on('input', async ({ key, query, result }) => {
       suggestions.push({ name: '━━━━━━━━━━━━━━━━━━━━━━━━', data: DIVIDER });
     }
 
-    otherMatches.forEach(p => suggestions.push({ name: p.name, data: p.id }));
+    otherMatches.forEach(p => suggestions.push({
+      name: p.name,
+      data: isSeparatorPage(p) ? DIVIDER : p.id,
+    }));
 
     result.setSuggestions(suggestions);
   }
