@@ -76,7 +76,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
 
 // ── Run: called when the user confirms a selection ────────────────────────────
 figma.on('run', async ({ parameters }) => {
-  const pageId = parameters?.page;
+  const pageId = parameters && parameters.page;
 
   if (pageId) {
     const page = figma.root.children.find(p => p.id === pageId);
