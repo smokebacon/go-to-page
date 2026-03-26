@@ -1,4 +1,4 @@
-// ─── Page Jumper — code.js ───────────────────────────────────────────────────
+// ─── Go to Page — code.js ────────────────────────────────────────────────────
 // Uses Figma's Parameters API: no UI panel.
 // Persists the last 3 visited pages via clientStorage and surfaces them first.
 
@@ -19,13 +19,6 @@ async function saveRecentId(pageId) {
   await figma.clientStorage.setAsync(STORAGE_KEY, ids);
 }
 
-// ── Label helpers ─────────────────────────────────────────────────────────────
-function label(page, recentIds) {
-  if (page.id === figma.currentPage.id) return page.name + '  ·  current';
-  if (recentIds.includes(page.id))      return page.name + '  ·  recent';
-  return page.name;
-}
-
 // ── Typeahead: called on every keystroke in the command bar ───────────────────
 figma.parameters.on('input', async ({ key, query, result }) => {
   if (key !== 'page') return;
@@ -33,44 +26,64 @@ figma.parameters.on('input', async ({ key, query, result }) => {
   const q        = query.trim().toLowerCase();
   const allPages = figma.root.children;
 
-  // Fetch recent IDs and drop any that no longer exist in the document
+  // Fetch recent IDs, drop stale ones, and exclude the current page
   const recentIds = (await getRecentIds()).filter(id =>
-    allPages.some(p => p.id === id)
+    allPages.some(p => p.id === id) && id !== figma.currentPage.id
   );
 
   if (q === '') {
-    // ── No query: recent pages first, then the rest ───────────────────────────
-    const recentSet = new Set(recentIds);
-
-    // Preserve recency order for the top section
+    // ── No query: recent pages first (with separator), then the rest ──────────
+    const recentSet   = new Set(recentIds);
     const recentPages = recentIds
       .map(id => allPages.find(p => p.id === id))
       .filter(Boolean);
+    const otherPages  = allPages.filter(p => !recentSet.has(p.id));
 
-    const otherPages = allPages.filter(p => !recentSet.has(p.id));
+    const suggestions = [
+      ...recentPages.map(p => ({ name: p.name + '  ·  recent', data: p.id })),
+    ];
 
-    result.setSuggestions([
-      ...recentPages.map(p => ({ name: label(p, recentIds), data: p.id })),
-      ...otherPages.map(p  => ({ name: label(p, recentIds), data: p.id })),
-    ]);
+    if (recentPages.length > 0 && otherPages.length > 0) {
+      suggestions.push({ separator: true });
+    }
+
+    otherPages.forEach(p => {
+      suggestions.push({
+        name: p.id === figma.currentPage.id ? p.name + '  ·  current' : p.name,
+        data: p.id,
+      });
+    });
+
+    result.setSuggestions(suggestions);
+
   } else {
-    // ── Query: filter all pages, boost recent matches to the top ─────────────
-    const matches = allPages.filter(p =>
-      p.name.toLowerCase().includes(q)
-    );
+    // ── Query: filter all pages, boost recent matches above the separator ─────
+    const matches = allPages.filter(p => p.name.toLowerCase().includes(q));
 
     if (matches.length === 0) {
-      result.setSuggestions([{ name: `No pages match "${query}"` }]);
+      result.setSuggestions([{ name: 'No pages match "' + query + '"' }]);
       return;
     }
 
     const recentMatches = matches.filter(p => recentIds.includes(p.id));
     const otherMatches  = matches.filter(p => !recentIds.includes(p.id));
 
-    result.setSuggestions([
-      ...recentMatches.map(p => ({ name: label(p, recentIds), data: p.id })),
-      ...otherMatches.map(p  => ({ name: label(p, recentIds), data: p.id })),
-    ]);
+    const suggestions = [
+      ...recentMatches.map(p => ({ name: p.name + '  ·  recent', data: p.id })),
+    ];
+
+    if (recentMatches.length > 0 && otherMatches.length > 0) {
+      suggestions.push({ separator: true });
+    }
+
+    otherMatches.forEach(p => {
+      suggestions.push({
+        name: p.id === figma.currentPage.id ? p.name + '  ·  current' : p.name,
+        data: p.id,
+      });
+    });
+
+    result.setSuggestions(suggestions);
   }
 });
 
@@ -81,7 +94,7 @@ figma.on('run', async ({ parameters }) => {
   if (pageId) {
     const page = figma.root.children.find(p => p.id === pageId);
     if (page) {
-      await saveRecentId(page.id);          // persist before navigating
+      await saveRecentId(page.id);
       await figma.setCurrentPageAsync(page);
     }
   }
