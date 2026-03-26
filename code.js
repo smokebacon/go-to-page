@@ -6,6 +6,7 @@ const STORAGE_KEY   = 'recentPageIds';
 const MAX_RECENT    = 3;            // how many to show
 const MAX_STORED    = MAX_RECENT + 1; // store one extra to cover the current page being filtered out
 const DIVIDER     = '__divider__';
+const PAGE_DIVIDER_NAME_PATTERN = /^([*\-–— ])\1*$/u;
 // Used for an "invisible" divider row: must be non-empty so the UI keeps a row height.
 const BLANK_DIVIDER_LABEL = '\u00A0'; // NBSP (renders as blank in most fonts)
 
@@ -29,7 +30,11 @@ async function saveRecentId(pageId) {
 
 // ── Returns true for pages used as visual separators (no alphanumeric chars) ──
 function isSeparatorPage(page) {
-  return !/[a-zA-Z0-9\u00C0-\u024F\u0400-\u04FF\u4E00-\u9FFF]/.test(page.name);
+  if (typeof page.isPageDivider === 'boolean') {
+    return page.isPageDivider;
+  }
+
+  return PAGE_DIVIDER_NAME_PATTERN.test(page.name);
 }
 
 function buildPageSuggestion(page, icon) {
