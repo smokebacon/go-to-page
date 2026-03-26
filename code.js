@@ -2,8 +2,9 @@
 // Uses Figma's Parameters API: no UI panel.
 // Persists the last 3 visited pages via clientStorage and surfaces them first.
 
-const STORAGE_KEY = 'recentPageIds';
-const MAX_RECENT  = 3;
+const STORAGE_KEY   = 'recentPageIds';
+const MAX_RECENT    = 3;            // how many to show
+const MAX_STORED    = MAX_RECENT + 1; // store one extra to cover the current page being filtered out
 const DIVIDER     = '__divider__';
 
 // ── Clock icon SVG for last-visited suggestions ───────────────────────────────
@@ -19,7 +20,7 @@ async function saveRecentId(pageId) {
   let ids = await getRecentIds();
   ids = ids.filter(id => id !== pageId);
   ids.unshift(pageId);
-  ids = ids.slice(0, MAX_RECENT);
+  ids = ids.slice(0, MAX_STORED);
   await figma.clientStorage.setAsync(STORAGE_KEY, ids);
 }
 
@@ -35,10 +36,10 @@ figma.parameters.on('input', async ({ key, query, result }) => {
   const q        = query.trim().toLowerCase();
   const allPages = figma.root.children;
 
-  // Fetch recent IDs — exclude stale, separator, and current page
-  const recentIds = (await getRecentIds()).filter(id =>
-    allPages.some(p => p.id === id && !isSeparatorPage(p)) && id !== figma.currentPage.id
-  );
+  // Fetch recent IDs — exclude stale, separator, and current page, then cap at MAX_RECENT
+  const recentIds = (await getRecentIds())
+    .filter(id => allPages.some(p => p.id === id && !isSeparatorPage(p)) && id !== figma.currentPage.id)
+    .slice(0, MAX_RECENT);
 
   if (q === '') {
     // ── No query: last visited first, then ALL pages in original order ──────────
