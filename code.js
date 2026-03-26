@@ -11,6 +11,7 @@ const BLANK_DIVIDER_LABEL = '\u00A0'; // NBSP (renders as blank in most fonts)
 
 // ── Clock icon SVG for last-visited suggestions ───────────────────────────────
 const CLOCK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8.2l2.5 1.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const SEPARATOR_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 8H11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
 
 // ── clientStorage helpers ─────────────────────────────────────────────────────
 async function getRecentIds() {
@@ -29,6 +30,15 @@ async function saveRecentId(pageId) {
 // ── Returns true for pages used as visual separators (no alphanumeric chars) ──
 function isSeparatorPage(page) {
   return !/[a-zA-Z0-9\u00C0-\u024F\u0400-\u04FF\u4E00-\u9FFF]/.test(page.name);
+}
+
+function buildPageSuggestion(page, icon) {
+  const separator = isSeparatorPage(page);
+  return {
+    name: separator ? BLANK_DIVIDER_LABEL : page.name,
+    data: separator ? DIVIDER : page.id,
+    icon: icon || (separator ? SEPARATOR_ICON : undefined),
+  };
 }
 
 // ── Typeahead: called on every keystroke in the command bar ───────────────────
@@ -63,10 +73,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     const recentSet = new Set(recentIds);
     allPages.forEach(p => {
       if (recentSet.has(p.id)) return;
-      suggestions.push({
-        name: p.name,
-        data: isSeparatorPage(p) ? DIVIDER : p.id,
-      });
+      suggestions.push(buildPageSuggestion(p));
     });
 
     result.setSuggestions(suggestions);
@@ -96,10 +103,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     const recentSet = new Set(recentIds);
     matches.forEach(p => {
       if (recentSet.has(p.id)) return;
-      suggestions.push({
-        name: p.name,
-        data: isSeparatorPage(p) ? DIVIDER : p.id,
-      });
+      suggestions.push(buildPageSuggestion(p));
     });
 
     result.setSuggestions(suggestions);
