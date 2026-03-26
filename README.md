@@ -1,35 +1,36 @@
 # Go to Page
 
-`Go to Page` is a lightweight parameter-only Figma plugin for jumping between pages quickly from the command bar.
+`Go to Page` is a simple Figma plugin that helps you jump to any page fast.
 
-It adds a searchable page picker with recent-page suggestions, preserves document order for the full results list, and treats separator pages specially so they stay visible as structure without being selectable.
+It opens right in Figma's command bar, shows your recently visited pages first, and keeps the rest of your pages in their normal order. If you use pages named like `-` or `---` as visual dividers, those still show up as separators without getting in the way.
 
-## What It Does
+## Why It's Nice
 
-- Opens as a command bar action with no custom UI panel
-- Lets you search pages by name as you type
-- Shows up to 3 recently visited pages first
-- Keeps the remaining page results in their original document order
-- Displays separator-style pages as blank rows with a separator icon
-- Prevents divider/separator rows from being selected as destinations
+- No extra plugin window
+- Search pages as you type
+- Recently visited pages show up first
+- The full page list stays in document order
+- Separator pages show up as clean visual dividers
+- Divider rows can't be selected by accident
 
 ## How It Works
 
-When you run the plugin, Figma shows a single `Page` parameter.
+When you run the plugin, Figma gives you one field: `Page`.
 
-- With an empty query, the plugin shows recent pages first, then all other pages
-- With a search query, the plugin shows recent matching pages first, then all other matches
-- Recent pages are marked with a clock icon
-- Separator pages are identified by names that contain no alphanumeric characters, such as `-` or `---`
-- Separator pages appear as visual dividers in the results list and do not navigate anywhere when selected
+- If you haven't typed anything yet, you'll see your recent pages first, then everything else
+- If you search, matching recent pages show up first, followed by the rest of the matches
+- Recent pages have a clock icon
+- Pages named with symbols only, like `-` or `---`, are treated as separators
+- Those separator pages show as blank divider rows with a small dash icon on the left
+- Clicking a separator won't navigate anywhere
 
-Recent-page history is stored with `clientStorage` and automatically updated whenever you jump to a page through the plugin.
+The plugin remembers your recent pages with `clientStorage` and updates that list whenever you jump through it.
 
-## Example Use Cases
+## Good For
 
-- Jump between working pages in a large file without scrolling the page list
-- Reopen the last few pages you were bouncing between
-- Keep page-list separators in your file without cluttering search results with literal `-` labels
+- Big files with lots of pages
+- Quickly bouncing between the same few working pages
+- Keeping your page list organized with visual separators
 
 ## Installation
 
@@ -37,13 +38,24 @@ Recent-page history is stored with `clientStorage` and automatically updated whe
 2. In Figma, go to `Plugins` > `Development` > `Import plugin from manifest...`
 3. Select [manifest.json](/Users/pchiemsombat/Library/Mobile%20Documents/com~apple~CloudDocs/Documents/go-to-page/manifest.json)
 
+## Set A Shortcut
+
+This plugin gets much better once you give it a keyboard shortcut.
+
+1. Open Figma.
+2. Go to `Menu` > `Preferences` > `Keyboard Shortcuts`.
+3. Find `Go to Page` in the plugins section.
+4. Assign whatever shortcut feels natural to you.
+
+After that, you can open it instantly and jump around your file without digging through the page list.
+
 ## Project Structure
 
-- [code.js](/Users/pchiemsombat/Library/Mobile%20Documents/com~apple~CloudDocs/Documents/go-to-page/code.js): plugin logic, search suggestions, recent-page storage, and navigation
-- [manifest.json](/Users/pchiemsombat/Library/Mobile%20Documents/com~apple~CloudDocs/Documents/go-to-page/manifest.json): Figma plugin manifest
+- [code.js](/Users/pchiemsombat/Library/Mobile%20Documents/com~apple~CloudDocs/Documents/go-to-page/code.js): the plugin logic
+- [manifest.json](/Users/pchiemsombat/Library/Mobile%20Documents/com~apple~CloudDocs/Documents/go-to-page/manifest.json): the Figma manifest file
 
 ## Notes
 
-- This plugin is built for the Figma editor
-- It uses the Parameters API, so there is no separate plugin window
-- Freeform input is disabled; users can only select from the suggested pages
+- Built for the Figma editor
+- Uses the Parameters API, so there's no separate UI window
+- Freeform input is off, so you can only choose from actual suggested pages
