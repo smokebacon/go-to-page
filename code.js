@@ -6,6 +6,8 @@ const STORAGE_KEY   = 'recentPageIds';
 const MAX_RECENT    = 3;            // how many to show
 const MAX_STORED    = MAX_RECENT + 1; // store one extra to cover the current page being filtered out
 const DIVIDER     = '__divider__';
+// Used for an "invisible" divider row: must be non-empty so the UI keeps a row height.
+const BLANK_DIVIDER_LABEL = '\u00A0'; // NBSP (renders as blank in most fonts)
 
 // ── Clock icon SVG for last-visited suggestions ───────────────────────────────
 const CLOCK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8.2l2.5 1.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -54,14 +56,18 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     }));
 
     if (recentPages.length > 0) {
-      suggestions.push({ name: '━━━━━━━━━━━━━━━━━━━━━━━━', data: DIVIDER });
+      suggestions.push({ name: BLANK_DIVIDER_LABEL, data: DIVIDER });
     }
 
-    // Full list — all pages in document order (recent pages appear here too)
-    allPages.forEach(p => suggestions.push({
-      name: p.name,
-      data: isSeparatorPage(p) ? DIVIDER : p.id,
-    }));
+    // Full list — all pages in document order, excluding recent pages to avoid duplicates
+    const recentSet = new Set(recentIds);
+    allPages.forEach(p => {
+      if (recentSet.has(p.id)) return;
+      suggestions.push({
+        name: p.name,
+        data: isSeparatorPage(p) ? DIVIDER : p.id,
+      });
+    });
 
     result.setSuggestions(suggestions);
 
@@ -83,14 +89,18 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     }));
 
     if (recentMatches.length > 0) {
-      suggestions.push({ name: '━━━━━━━━━━━━━━━━━━━━━━━━', data: DIVIDER });
+      suggestions.push({ name: BLANK_DIVIDER_LABEL, data: DIVIDER });
     }
 
-    // Full filtered list — all matches in document order (recent pages appear here too)
-    matches.forEach(p => suggestions.push({
-      name: p.name,
-      data: isSeparatorPage(p) ? DIVIDER : p.id,
-    }));
+    // Full filtered list — all matches, excluding recentMatches to avoid duplicates
+    const recentSet = new Set(recentIds);
+    matches.forEach(p => {
+      if (recentSet.has(p.id)) return;
+      suggestions.push({
+        name: p.name,
+        data: isSeparatorPage(p) ? DIVIDER : p.id,
+      });
+    });
 
     result.setSuggestions(suggestions);
   }
