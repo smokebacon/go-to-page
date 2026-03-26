@@ -41,12 +41,10 @@ figma.parameters.on('input', async ({ key, query, result }) => {
   );
 
   if (q === '') {
-    // ── No query: last visited first (with divider), then the rest ─────────────
-    const recentSet   = new Set(recentIds);
+    // ── No query: last visited first, then ALL pages in original order ──────────
     const recentPages = recentIds
       .map(id => allPages.find(p => p.id === id))
       .filter(Boolean);
-    const otherPages  = allPages.filter(p => !recentSet.has(p.id));
 
     const suggestions = recentPages.map(p => ({
       name: p.name + '  ·  last visited',
@@ -54,11 +52,12 @@ figma.parameters.on('input', async ({ key, query, result }) => {
       icon: CLOCK_ICON,
     }));
 
-    if (recentPages.length > 0 && otherPages.length > 0) {
+    if (recentPages.length > 0) {
       suggestions.push({ name: '━━━━━━━━━━━━━━━━━━━━━━━━', data: DIVIDER });
     }
 
-    otherPages.forEach(p => suggestions.push({
+    // Full list — all pages in document order (recent pages appear here too)
+    allPages.forEach(p => suggestions.push({
       name: p.name,
       data: isSeparatorPage(p) ? DIVIDER : p.id,
     }));
@@ -66,7 +65,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     result.setSuggestions(suggestions);
 
   } else {
-    // ── Query: filter, boost last-visited matches above the divider ────────────
+    // ── Query: last-visited matches first, then ALL matches in original order ───
     const matches = allPages.filter(p => p.name.toLowerCase().includes(q));
 
     if (matches.length === 0) {
@@ -75,7 +74,6 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     }
 
     const recentMatches = matches.filter(p => recentIds.includes(p.id));
-    const otherMatches  = matches.filter(p => !recentIds.includes(p.id));
 
     const suggestions = recentMatches.map(p => ({
       name: p.name + '  ·  last visited',
@@ -83,11 +81,12 @@ figma.parameters.on('input', async ({ key, query, result }) => {
       icon: CLOCK_ICON,
     }));
 
-    if (recentMatches.length > 0 && otherMatches.length > 0) {
+    if (recentMatches.length > 0) {
       suggestions.push({ name: '━━━━━━━━━━━━━━━━━━━━━━━━', data: DIVIDER });
     }
 
-    otherMatches.forEach(p => suggestions.push({
+    // Full filtered list — all matches in document order (recent pages appear here too)
+    matches.forEach(p => suggestions.push({
       name: p.name,
       data: isSeparatorPage(p) ? DIVIDER : p.id,
     }));
