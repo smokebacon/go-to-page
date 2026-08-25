@@ -51,6 +51,10 @@ function buildPageSuggestion(page, icon) {
   };
 }
 
+// ── Warm up clientStorage as soon as the plugin loads, off the typing path ────
+// Fetched once and reused below — avoids a fresh storage round-trip per keystroke
+const recentIdsPromise = getRecentIds();
+
 // ── Typeahead: called on every keystroke in the command bar ───────────────────
 figma.parameters.on('input', async ({ key, query, result }) => {
   if (key !== 'page') return;
@@ -60,7 +64,7 @@ figma.parameters.on('input', async ({ key, query, result }) => {
     const allPages = figma.root.children;
 
     // Fetch recent IDs — exclude stale, separator, and current page, then cap at MAX_RECENT
-    const recentIds = (await getRecentIds())
+    const recentIds = (await recentIdsPromise)
       .filter(id => allPages.some(p => p.id === id && !isSeparatorPage(p)) && id !== figma.currentPage.id)
       .slice(0, MAX_RECENT);
 

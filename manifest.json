@@ -1,10 +1,13 @@
 {
   "name": "Go to Page",
-  "id": "page-jumper",
+  "id": "1636644460241605828",
   "api": "1.0.0",
   "main": "code.js",
   "editorType": ["figma"],
   "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
   "parameterOnly": true,
   "parameters": [
     {
