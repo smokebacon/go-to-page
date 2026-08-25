@@ -4,12 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## 1.2.0 - 2026-08-25
-
-### Fixed
-
-- Fixed slow typeahead caused by a redundant clientStorage read on every keystroke - recent pages are now fetched once per plugin invocation and cached, with that fetch kicked off at load time so it warms up in the background instead of blocking your first keystroke
-
 ## 1.1.0 - 2026-03-26
 
 ### Added
