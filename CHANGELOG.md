@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Typed search now ranks matches by relevance instead of raw substring order — exact, prefix, and substring matches rank highest, with typo-tolerant fuzzy matching (including mistyped or transposed letters) as a fallback
+
 ## 1.1.0 - 2026-03-26
 
 ### Added
